@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "dgSpecHash": "99B4AuIGVsg=",
+  "success": true,
+  "projectFilePath": "/app/Isotope.Client/Isotope.Client.csproj",
+  "expectedPackageFiles": [
+    "/home/jules/.nuget/packages/arch/2.1.0/arch.2.1.0.nupkg.sha512",
+    "/home/jules/.nuget/packages/arch.lowlevel/1.1.5/arch.lowlevel.1.1.5.nupkg.sha512",
+    "/home/jules/.nuget/packages/collections.pooled/2.0.0-preview.27/collections.pooled.2.0.0-preview.27.nupkg.sha512",
+    "/home/jules/.nuget/packages/communitytoolkit.highperformance/8.2.2/communitytoolkit.highperformance.8.2.2.nupkg.sha512",
+    "/home/jules/.nuget/packages/microsoft.extensions.objectpool/7.0.0/microsoft.extensions.objectpool.7.0.0.nupkg.sha512",
+    "/home/jules/.nuget/packages/raylib-cs/7.0.2/raylib-cs.7.0.2.nupkg.sha512",
+    "/home/jules/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
+    "/home/jules/.nuget/packages/zeroallocjobscheduler/1.1.2/zeroallocjobscheduler.1.1.2.nupkg.sha512"
+  ],
+  "logs": []
+}
