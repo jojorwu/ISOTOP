@@ -1,22 +1,25 @@
 using Arch.Core;
-using Arch.System;
 using Isotope.Core.Components;
 using System.Collections.Generic;
 
 namespace Isotope.Core.Systems;
 
-public partial class HierarchySystem : BaseSystem<World, float>
+public partial class HierarchySystem
 {
+    private readonly World _world;
     private readonly QueryDescription _allTransformsQuery = new QueryDescription().WithAll<TransformComponent>();
 
-    public HierarchySystem(World world) : base(world) { }
+    public HierarchySystem(World world)
+    {
+        _world = world;
+    }
 
-    public override void Update(in float deltaTime)
+    public void Update(in float deltaTime)
     {
         // First pass: update all root entities (those without a valid parent)
-        World.Query(in _allTransformsQuery, (Entity entity, ref TransformComponent transform) =>
+        _world.Query(in _allTransformsQuery, (Entity entity, ref TransformComponent transform) =>
         {
-            if (!transform.Parent.IsAlive() || !World.IsAlive(transform.Parent))
+            if (!_world.IsAlive(transform.Parent))
             {
                 transform.WorldPosition = transform.LocalPosition;
             }
@@ -26,13 +29,13 @@ public partial class HierarchySystem : BaseSystem<World, float>
         // but works for reasonably shallow hierarchies. A better system would use dirty flagging.
         for (int i = 0; i < 5; i++)
         {
-            World.Query(in _allTransformsQuery, (Entity entity, ref TransformComponent transform) =>
+            _world.Query(in _allTransformsQuery, (Entity entity, ref TransformComponent transform) =>
             {
-                if (transform.Parent.IsAlive() && World.IsAlive(transform.Parent))
+                if (_world.IsAlive(transform.Parent))
                 {
                     // This try-get is necessary because the parent might not have a TransformComponent,
                     // although in our design it always should.
-                    if (World.TryGet(transform.Parent, out TransformComponent parentTransform))
+                    if (_world.TryGet(transform.Parent, out TransformComponent parentTransform))
                     {
                         transform.WorldPosition = parentTransform.WorldPosition + transform.LocalPosition;
                     }

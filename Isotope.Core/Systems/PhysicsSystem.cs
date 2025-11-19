@@ -6,30 +6,27 @@ using System.Numerics;
 
 namespace Isotope.Core.Systems;
 
-public partial class PhysicsSystem : ParallelSystem
+public partial class PhysicsSystem
 {
+    private readonly World _world;
     private readonly WorldMap _map;
+    private readonly QueryDescription _query = new QueryDescription().WithAll<TransformComponent, BodyComponent>();
 
     public PhysicsSystem(World world, WorldMap map)
-        : base(world, new QueryDescription().WithAll<TransformComponent, BodyComponent>())
     {
+        _world = world;
         _map = map;
     }
 
-    protected override void UpdateChunk(ref Chunk chunk, in float deltaTime)
+    public void Update(in float deltaTime)
     {
-        var positions = chunk.GetSpan<TransformComponent>();
-        var bodies = chunk.GetSpan<BodyComponent>();
-
-        for (int i = 0; i < chunk.Size; i++)
+        var dt = deltaTime;
+        _world.Query(in _query, (ref TransformComponent pos, ref BodyComponent body) =>
         {
-            ref var pos = ref positions[i];
-            ref var body = ref bodies[i];
-
-            if (body.IsStatic) continue;
+            if (body.IsStatic) return;
 
             // Physics operates on WorldPosition
-            Vector2 nextPos = pos.WorldPosition + (body.Velocity * deltaTime);
+            Vector2 nextPos = pos.WorldPosition + (body.Velocity * dt);
 
             if (!IsCollidingWithMap(nextPos, body.Size))
             {
@@ -42,7 +39,7 @@ public partial class PhysicsSystem : ParallelSystem
             }
 
             body.Velocity *= 0.90f;
-        }
+        });
     }
 
     private bool IsCollidingWithMap(Vector2 pos, Vector2 size)

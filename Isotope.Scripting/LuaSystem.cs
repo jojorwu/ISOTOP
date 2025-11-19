@@ -3,7 +3,7 @@ using NLua;
 using System;
 using System.IO;
 
-namespace Isotope.Scripting.Lua;
+namespace Isotope.Scripting.NLua;
 
 public class LuaSystem
 {

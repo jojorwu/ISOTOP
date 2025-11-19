@@ -39,7 +39,7 @@ public static class PrototypeManager
                         Tint = Color.White,
                         Visible = true
                     };
-                    entity.Add(sprite);
+                    world.Add<SpriteComponent>(entity, sprite);
                     break;
 
                 case "Body":
@@ -50,7 +50,7 @@ public static class PrototypeManager
                             GetValue<float>(compProto.Values, "height")
                         )
                     };
-                    entity.Add(body);
+                    world.Add<BodyComponent>(entity, body);
                     break;
 
                 case "LightSource":
@@ -65,11 +65,11 @@ public static class PrototypeManager
                             255
                         )
                     };
-                    entity.Add(light);
+                    world.Add<LightSource>(entity, light);
                     break;
 
                 case "PlayerTag":
-                    entity.Add(new PlayerTag());
+                    world.Add<PlayerTag>(entity);
                     break;
             }
         }

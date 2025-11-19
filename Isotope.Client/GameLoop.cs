@@ -1,6 +1,5 @@
 using System;
 using Arch.Core;
-using Isotope.Client.Editor;
 using Isotope.Client.Rendering;
 using Isotope.Client.Systems;
 using Isotope.Core.Components;
@@ -9,111 +8,98 @@ using Isotope.Core.Prototypes;
 using Isotope.Core.Scripting;
 using Isotope.Core.Systems;
 using Isotope.Core.Tiles;
-using Isotope.Scripting.Lua;
+using Isotope.Scripting.NLua;
 using Raylib_cs;
-using sbf.raylib.imgui;
+using Isotope.Client;
 using System.Collections.Generic;
 using System.Numerics;
 
 public class GameLoop
 {
     private const double TickRate = 1.0 / 60.0;
-    private const int ScreenWidth = 1280;
-    private const int ScreenHeight = 720;
 
-    private World _world;
+    public World World { get; private set; }
+    public Camera2D Camera { get; private set; }
+
     private WorldMap _map;
-    private Camera2D _camera;
-
     private HierarchySystem _hierarchySystem;
     private PhysicsSystem _physicsSystem;
     private InputSystem _inputSystem;
     private EntityRenderSystem _entityRenderSystem;
     private LightingPass _lightingPass;
-    private EditorSystem _editorSystem;
     private LuaSystem _luaSystem;
     private EngineApi _engineApi;
 
     private Dictionary<string, Texture2D> _tileTextureCache = new();
 
-    public void Run()
-    {
-        Raylib.InitWindow(ScreenWidth, ScreenHeight, "ISOTOPE ENGINE [DEBUG]");
-        Raylib.SetTargetFPS(144);
-        RlImGui.Setup(true);
+    private double _accumulator = 0.0;
 
-        _world = World.Create();
-        _camera = new Camera2D
+    public void Init()
+    {
+        World = World.Create();
+        var camera = new Camera2D
         {
             Zoom = 1.0f,
-            Target = new Vector2(0,0),
-            Offset = new Vector2(ScreenWidth / 2.0f, ScreenHeight / 2.0f),
+            Target = new Vector2(0, 0),
+            Offset = new Vector2(1280 / 2.0f, 720 / 2.0f),
         };
+        Camera = camera;
 
         LoadContent();
         InitializeMap();
         SpawnEntities();
 
-        _hierarchySystem = new HierarchySystem(_world);
-        _physicsSystem = new PhysicsSystem(_world, _map);
-        _inputSystem = new InputSystem(_world);
-        _entityRenderSystem = new EntityRenderSystem(_world);
-        _lightingPass = new LightingPass(ScreenWidth, ScreenHeight);
-        _editorSystem = new EditorSystem(_map, _world);
+        _hierarchySystem = new HierarchySystem(World);
+        _physicsSystem = new PhysicsSystem(World, _map);
+        _inputSystem = new InputSystem(World);
+        _entityRenderSystem = new EntityRenderSystem(World);
+        _lightingPass = new LightingPass(1280, 720);
+    }
 
-        double accumulator = 0.0;
-        double lastTime = Raylib.GetTime();
+    public void Update()
+    {
+        // Using a fixed timestep for physics and logic
+        _accumulator += Raylib.GetFrameTime();
 
-        while (!Raylib.WindowShouldClose())
+        HandleInput();
+
+        while (_accumulator >= TickRate)
         {
-            double currentTime = Raylib.GetTime();
-            double frameTime = currentTime - lastTime;
-            lastTime = currentTime;
-            if (frameTime > 0.25) frameTime = 0.25;
-            accumulator += frameTime;
-
-            HandleInput();
-
-            while (accumulator >= TickRate)
-            {
-                var deltaTime = (float)TickRate;
-                _inputSystem.Update(in deltaTime);
-                _hierarchySystem.Update(in deltaTime);
-                _physicsSystem.Update(in deltaTime);
-                accumulator -= TickRate;
-            }
-
-            var playerQuery = new QueryDescription().WithAll<PlayerTag, TransformComponent>();
-            _world.Query(in playerQuery, (ref TransformComponent transform) => {
-                _camera.Target = transform.WorldPosition;
-            });
-
-            Raylib.BeginDrawing();
-            Raylib.ClearBackground(Color.Black);
-
-            Raylib.BeginMode2D(_camera);
-            RenderMap();
-            _entityRenderSystem.Update(0f);
-            Raylib.EndMode2D();
-
-            _lightingPass.DrawLights(_world, _map, _camera);
-            _lightingPass.RenderToScreen();
-
-            RlImGui.Begin();
-            _editorSystem.Update(_camera);
-            RlImGui.End();
-
-            Raylib.DrawFPS(10, 10);
-            Raylib.EndDrawing();
+            var deltaTime = (float)TickRate;
+            _inputSystem.Update(in deltaTime);
+            _hierarchySystem.Update(in deltaTime);
+            _physicsSystem.Update(in deltaTime);
+            _accumulator -= TickRate;
         }
 
+        var playerQuery = new QueryDescription().WithAll<PlayerTag, TransformComponent>();
+        World.Query(in playerQuery, (ref TransformComponent transform) =>
+        {
+            var camera = Camera;
+            camera.Target = transform.WorldPosition;
+            Camera = camera;
+        });
+    }
+
+    public void Render()
+    {
+        Raylib.BeginMode2D(Camera);
+        RenderMap();
+        _entityRenderSystem.Update(0f);
+        Raylib.EndMode2D();
+
+        _lightingPass.DrawLights(World, _map, Camera);
+        _lightingPass.RenderToScreen();
+    }
+
+    public void Shutdown()
+    {
         UnloadContent();
-        Raylib.CloseWindow();
     }
 
     private void LoadContent()
     {
-        _engineApi = new EngineApi(_world);
+        _engineApi = new EngineApi(World);
         _luaSystem = new LuaSystem(_engineApi);
 
         TileRegistry.Register(new TileDefinition { Name = "Floor_Plating", TexturePath = "Content/floors/plating.png" });
@@ -131,7 +117,6 @@ public class GameLoop
         }
         _tileTextureCache.Clear();
         _lightingPass.Unload();
-        RlImGui.Shutdown();
     }
 
     private void InitializeMap()
@@ -145,8 +130,8 @@ public class GameLoop
 
     private void SpawnEntities()
     {
-        PrototypeManager.Spawn(_world, "Player", new Vector2(250, 250));
-        PrototypeManager.Spawn(_world, "Toolbox", new Vector2(350, 250));
+        PrototypeManager.Spawn(World, "Player", new Vector2(250, 250));
+        PrototypeManager.Spawn(World, "Toolbox", new Vector2(350, 250));
     }
 
     private void HandleInput()
@@ -155,7 +140,7 @@ public class GameLoop
         {
             Entity playerEntity = Entity.Null;
             var playerQuery = new QueryDescription().WithAll<PlayerTag>();
-            _world.Query(in playerQuery, (Entity entity) => { playerEntity = entity; });
+            World.Query(in playerQuery, (Entity entity) => { playerEntity = entity; });
 
             if (playerEntity == Entity.Null) return;
 
@@ -163,12 +148,12 @@ public class GameLoop
             float closestDist = 100f;
 
             var toolboxQuery = new QueryDescription().WithAll<SpriteComponent>();
-            _world.Query(in toolboxQuery, (Entity entity, ref TransformComponent transform, ref SpriteComponent sprite) =>
+            World.Query(in toolboxQuery, (Entity entity, ref TransformComponent transform, ref SpriteComponent sprite) =>
             {
-                if(sprite.TexturePath.Contains("toolbox"))
+                if (sprite.TexturePath.Contains("toolbox"))
                 {
-                    float dist = Vector2.Distance(_world.Get<TransformComponent>(playerEntity).WorldPosition, transform.WorldPosition);
-                    if(dist < closestDist)
+                    float dist = Vector2.Distance(World.Get<TransformComponent>(playerEntity).WorldPosition, transform.WorldPosition);
+                    if (dist < closestDist)
                     {
                         closestDist = dist;
                         closestToolbox = entity;
@@ -176,10 +161,10 @@ public class GameLoop
                 }
             });
 
-            if(closestToolbox != Entity.Null)
+            if (closestToolbox != Entity.Null)
             {
-                ref var transform = ref _world.Get<TransformComponent>(closestToolbox);
-                ref var sprite = ref _world.Get<SpriteComponent>(closestToolbox);
+                ref var transform = ref World.Get<TransformComponent>(closestToolbox);
+                ref var sprite = ref World.Get<SpriteComponent>(closestToolbox);
 
                 transform.Parent = playerEntity;
                 transform.LocalPosition = new Vector2(0, -20);
@@ -190,14 +175,16 @@ public class GameLoop
 
     private void RenderMap()
     {
-        for (int y = 0; y < _map.Height; y++) {
-            for (int x = 0; x < _map.Width; x++) {
+        for (int y = 0; y < _map.Height; y++)
+        {
+            for (int x = 0; x < _map.Width; x++)
+            {
                 ref readonly var tile = ref _map.GetTile(x, y);
 
                 if (tile.FloorId != 0)
                 {
                     var floorDef = TileRegistry.Get(tile.FloorId);
-                    if(floorDef != null)
+                    if (floorDef != null)
                     {
                         var texture = GetTileTexture(floorDef.TexturePath);
                         Raylib.DrawTexture(texture, x * WorldMap.TILE_SIZE, y * WorldMap.TILE_SIZE, Color.White);
@@ -207,7 +194,7 @@ public class GameLoop
                 if (tile.WallId != 0)
                 {
                     var wallDef = TileRegistry.Get(tile.WallId);
-                     if(wallDef != null)
+                    if (wallDef != null)
                     {
                         var texture = GetTileTexture(wallDef.TexturePath);
                         Raylib.DrawTexture(texture, x * WorldMap.TILE_SIZE, y * WorldMap.TILE_SIZE, Color.White);
@@ -219,7 +206,8 @@ public class GameLoop
 
     private Texture2D GetTileTexture(string path)
     {
-        if (_tileTextureCache.TryGetValue(path, out var texture)) {
+        if (_tileTextureCache.TryGetValue(path, out var texture))
+        {
             return texture;
         }
 

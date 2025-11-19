@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "99B4AuIGVsg=",
+  "dgSpecHash": "i+0IEPkfXogNes8cy7U4R01JnJzh0c0DZlXjiJjPNTx4I8kPD9RippljsCy1h5AOnlp0UQY4A6QYqPZJimqJkQ==",
   "success": true,
   "projectFilePath": "/app/Isotope.Client/Isotope.Client.csproj",
   "expectedPackageFiles": [
@@ -8,9 +8,16 @@
     "/home/jules/.nuget/packages/arch.lowlevel/1.1.5/arch.lowlevel.1.1.5.nupkg.sha512",
     "/home/jules/.nuget/packages/collections.pooled/2.0.0-preview.27/collections.pooled.2.0.0-preview.27.nupkg.sha512",
     "/home/jules/.nuget/packages/communitytoolkit.highperformance/8.2.2/communitytoolkit.highperformance.8.2.2.nupkg.sha512",
+    "/home/jules/.nuget/packages/imgui.net/1.90.0.1/imgui.net.1.90.0.1.nupkg.sha512",
+    "/home/jules/.nuget/packages/keralua/1.3.4/keralua.1.3.4.nupkg.sha512",
+    "/home/jules/.nuget/packages/litenetlib/1.3.1/litenetlib.1.3.1.nupkg.sha512",
     "/home/jules/.nuget/packages/microsoft.extensions.objectpool/7.0.0/microsoft.extensions.objectpool.7.0.0.nupkg.sha512",
-    "/home/jules/.nuget/packages/raylib-cs/7.0.2/raylib-cs.7.0.2.nupkg.sha512",
+    "/home/jules/.nuget/packages/nlua/1.6.3/nlua.1.6.3.nupkg.sha512",
+    "/home/jules/.nuget/packages/raylib-cs/6.0.0/raylib-cs.6.0.0.nupkg.sha512",
+    "/home/jules/.nuget/packages/system.buffers/4.4.0/system.buffers.4.4.0.nupkg.sha512",
+    "/home/jules/.nuget/packages/system.numerics.vectors/4.5.0/system.numerics.vectors.4.5.0.nupkg.sha512",
     "/home/jules/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
+    "/home/jules/.nuget/packages/yamldotnet/15.1.2/yamldotnet.15.1.2.nupkg.sha512",
     "/home/jules/.nuget/packages/zeroallocjobscheduler/1.1.2/zeroallocjobscheduler.1.1.2.nupkg.sha512"
   ],
   "logs": []

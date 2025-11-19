@@ -51,9 +51,9 @@ public class LightingPass
 
     public void RenderToScreen()
     {
-        Raylib.BeginBlendMode(BlendMode.Multiply);
-        Rectangle src = new Rectangle(0, 0, _lightMap.texture.width, -_lightMap.texture.height);
-        Raylib.DrawTextureRec(_lightMap.texture, src, Vector2.Zero, Color.White);
+        Raylib.BeginBlendMode(BlendMode.Multiplied);
+        Rectangle src = new Rectangle(0, 0, _lightMap.Texture.Width, -_lightMap.Texture.Height);
+        Raylib.DrawTextureRec(_lightMap.Texture, src, Vector2.Zero, Color.White);
         Raylib.EndBlendMode();
     }
 }

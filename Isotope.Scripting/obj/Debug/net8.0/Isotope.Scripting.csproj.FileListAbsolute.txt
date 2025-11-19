@@ -1,0 +1,16 @@
+/app/Isotope.Scripting/obj/Debug/net8.0/Isotope.Scripting.csproj.AssemblyReference.cache
+/app/Isotope.Scripting/obj/Debug/net8.0/Isotope.Scripting.GeneratedMSBuildEditorConfig.editorconfig
+/app/Isotope.Scripting/obj/Debug/net8.0/Isotope.Scripting.AssemblyInfoInputs.cache
+/app/Isotope.Scripting/obj/Debug/net8.0/Isotope.Scripting.AssemblyInfo.cs
+/app/Isotope.Scripting/obj/Debug/net8.0/Isotope.Scripting.csproj.CoreCompileInputs.cache
+/app/Isotope.Scripting/obj/Debug/net8.0/Isotope.Scripting.sourcelink.json
+/app/Isotope.Scripting/bin/Debug/net8.0/Isotope.Scripting.deps.json
+/app/Isotope.Scripting/bin/Debug/net8.0/Isotope.Scripting.dll
+/app/Isotope.Scripting/bin/Debug/net8.0/Isotope.Scripting.pdb
+/app/Isotope.Scripting/bin/Debug/net8.0/Isotope.Core.dll
+/app/Isotope.Scripting/bin/Debug/net8.0/Isotope.Core.pdb
+/app/Isotope.Scripting/obj/Debug/net8.0/Isotope.Scripting.csproj.CopyComplete
+/app/Isotope.Scripting/obj/Debug/net8.0/Isotope.Scripting.dll
+/app/Isotope.Scripting/obj/Debug/net8.0/refint/Isotope.Scripting.dll
+/app/Isotope.Scripting/obj/Debug/net8.0/Isotope.Scripting.pdb
+/app/Isotope.Scripting/obj/Debug/net8.0/ref/Isotope.Scripting.dll

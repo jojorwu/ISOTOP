@@ -1,22 +1,25 @@
 using Arch.Core;
-using Arch.System;
 using Isotope.Core.Components;
 using Raylib_cs;
 using System.Collections.Generic;
 
 namespace Isotope.Client.Systems;
 
-public partial class EntityRenderSystem : BaseSystem<World, float>
+public partial class EntityRenderSystem
 {
+    private readonly World _world;
     private Dictionary<string, Texture2D> _textureCache = new();
 
-    public EntityRenderSystem(World world) : base(world) { }
+    public EntityRenderSystem(World world)
+    {
+        _world = world;
+    }
 
-    public override void Update(in float deltaTime)
+    public void Update(in float deltaTime)
     {
         var query = new QueryDescription().WithAll<TransformComponent, SpriteComponent>();
 
-        World.Query(in query, (ref TransformComponent t, ref SpriteComponent s) =>
+        _world.Query(in query, (ref TransformComponent t, ref SpriteComponent s) =>
         {
              if (!s.Visible) return;
 

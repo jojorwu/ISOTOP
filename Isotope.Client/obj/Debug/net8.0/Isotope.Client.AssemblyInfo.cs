@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Isotope.Client")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7bae70dc07e9ab24d843f93aa2c755e3ec9931be")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1fd2abf6ccebd996cfa2572cbe5c045ae4a84fcc")]
 [assembly: System.Reflection.AssemblyProductAttribute("Isotope.Client")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Isotope.Client")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
