@@ -26,7 +26,7 @@ namespace Isotope.Client.Editor
             _gameViewTexture = Raylib.LoadRenderTexture(800, 600);
         }
 
-        public void Draw(World world, WorldMap map, Camera2D gameCamera, Action gameUpdate, Action gameRender)
+        public void Draw(World world, WorldMap map, Camera2D gameCamera, Action gameUpdate, Action gameRender, Action spawnEntities)
         {
             // --- 1. ЛОГИКА (UPDATE) ---
             if (_isPlaying)
@@ -54,14 +54,14 @@ namespace Isotope.Client.Editor
             RlImGui.Begin(Raylib.GetFrameTime());
             DrawDockSpace(); // Включаем докинг окон
 
-            DrawToolbar(world, map);   // Кнопки Play/Stop
+            DrawToolbar(world, map, spawnEntities);   // Кнопки Play/Stop
             DrawSceneView(world, gameCamera); // Само окно с игрой
             DrawInspector(world); // Свойства объектов
 
             RlImGui.End();
         }
 
-        private void DrawToolbar(World world, WorldMap map)
+        private void DrawToolbar(World world, WorldMap map, Action spawnEntities)
         {
             ImGui.Begin("Toolbar", ImGuiWindowFlags.NoDecoration);
 
@@ -80,6 +80,7 @@ namespace Isotope.Client.Editor
                     _isPlaying = false;
                     world.Clear();
                     MapSerializer.Load(map, "temp_autosave.json");
+                    spawnEntities();
                 }
             }
 

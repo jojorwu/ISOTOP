@@ -28,7 +28,8 @@ namespace Isotope.Client
                     game.Map,
                     game.Camera,
                     gameUpdate: () => game.Update(),
-                    gameRender: () => game.Render()
+                    gameRender: () => game.Render(),
+                    spawnEntities: () => game.SpawnEntities()
                 );
 
                 Raylib.EndDrawing();

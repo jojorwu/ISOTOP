@@ -127,7 +127,7 @@ public class GameLoop
         }
     }
 
-    private void SpawnEntities()
+    public void SpawnEntities()
     {
         PrototypeManager.Spawn(World, "Player", new Vector2(250, 250));
         PrototypeManager.Spawn(World, "Toolbox", new Vector2(350, 250));
