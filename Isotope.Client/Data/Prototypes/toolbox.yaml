@@ -1,0 +1,11 @@
+- type: entity
+  id: Toolbox
+  name: Toolbox
+  components:
+    - type: Sprite
+      values:
+        texturePath: "Content/entities/toolbox.png"
+    - type: Body
+      values:
+        width: 24
+        height: 16

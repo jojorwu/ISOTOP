@@ -1,0 +1,19 @@
+- type: entity
+  id: Player
+  name: Player
+  components:
+    - type: Sprite
+      values:
+        texturePath: "Content/entities/player.png"
+    - type: Body
+      values:
+        width: 16
+        height: 16
+    - type: LightSource
+      values:
+        radius: 300.0
+        intensity: 1.0
+        r: 255
+        g: 230
+        b: 180
+    - type: PlayerTag
