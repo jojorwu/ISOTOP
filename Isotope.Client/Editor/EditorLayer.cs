@@ -4,6 +4,8 @@ using Arch.Core;
 using ImGuiNET;
 using Raylib_cs;
 using Isotope.Client;
+using Isotope.Core.Map;
+using Isotope.Core.Components;
 
 namespace Isotope.Client.Editor
 {
@@ -12,6 +14,8 @@ namespace Isotope.Client.Editor
         // Это наш "виртуальный экран" игры
         private RenderTexture2D _gameViewTexture;
         private bool _isPlaying = false;
+        private string _currentMapPath = "maps/test_level.json";
+        private Entity _selectedEntity = Entity.Null;
 
         // Размер окна Scene View (чтобы ресайзить игру)
         private Vector2 _lastWindowSize = new Vector2(800, 600);
@@ -22,7 +26,7 @@ namespace Isotope.Client.Editor
             _gameViewTexture = Raylib.LoadRenderTexture(800, 600);
         }
 
-        public void Draw(World world, Action gameUpdate, Action gameRender)
+        public void Draw(World world, WorldMap map, Camera2D gameCamera, Action gameUpdate, Action gameRender)
         {
             // --- 1. ЛОГИКА (UPDATE) ---
             if (_isPlaying)
@@ -42,7 +46,7 @@ namespace Isotope.Client.Editor
             gameRender.Invoke(); // Рисуем игру (Тайлы, Спрайты)
 
             // Если мы в редакторе, рисуем сетку поверх игры
-            if (!_isPlaying) DrawEditorGizmos();
+            if (!_isPlaying) DrawEditorGizmos(world);
 
             Raylib.EndTextureMode();
 
@@ -50,14 +54,14 @@ namespace Isotope.Client.Editor
             RlImGui.Begin(Raylib.GetFrameTime());
             DrawDockSpace(); // Включаем докинг окон
 
-            DrawToolbar();   // Кнопки Play/Stop
-            DrawSceneView(); // Само окно с игрой
+            DrawToolbar(world, map);   // Кнопки Play/Stop
+            DrawSceneView(world, gameCamera); // Само окно с игрой
             DrawInspector(world); // Свойства объектов
 
             RlImGui.End();
         }
 
-        private void DrawToolbar()
+        private void DrawToolbar(World world, WorldMap map)
         {
             ImGui.Begin("Toolbar", ImGuiWindowFlags.NoDecoration);
 
@@ -65,7 +69,7 @@ namespace Isotope.Client.Editor
             {
                 if (ImGui.Button("PLAY (F5)"))
                 {
-                    // Тут можно сохранить состояние мира (Snapshot), чтобы потом откатить
+                    MapSerializer.Save(map, "temp_autosave.json");
                     _isPlaying = true;
                 }
             }
@@ -74,37 +78,45 @@ namespace Isotope.Client.Editor
                 if (ImGui.Button("STOP (Esc)"))
                 {
                     _isPlaying = false;
-                    // Тут перезагружаем карту или восстанавливаем Snapshot
+                    world.Clear();
+                    MapSerializer.Load(map, "temp_autosave.json");
                 }
             }
 
             ImGui.End();
         }
 
-        private void DrawSceneView()
+        private void DrawSceneView(World world, Camera2D gameCamera)
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero); // Убираем отступы
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
             ImGui.Begin("Scene View");
 
-            // Получаем размер текущего окна ImGui
             Vector2 size = ImGui.GetContentRegionAvail();
 
-            // Если размер окна изменился — пересоздаем текстуру игры
-            if (size.X != _lastWindowSize.X || size.Y != _lastWindowSize.Y)
+            if (size.X > 0 && size.Y > 0)
             {
-                Raylib.UnloadRenderTexture(_gameViewTexture);
-                _gameViewTexture = Raylib.LoadRenderTexture((int)size.X, (int)size.Y);
-                _lastWindowSize = size;
-            }
+                if (size.X != _lastWindowSize.X || size.Y != _lastWindowSize.Y)
+                {
+                    Raylib.UnloadRenderTexture(_gameViewTexture);
+                    _gameViewTexture = Raylib.LoadRenderTexture((int)size.X, (int)size.Y);
+                    _lastWindowSize = size;
+                }
 
-            // РИСУЕМ ТЕКСТУРУ ИГРЫ ВНУТРИ ОКНА
-            RlImGui.ImageRenderTextureFit(_gameViewTexture, size.X, size.Y);
+                RlImGui.ImageRenderTextureFit(_gameViewTexture, size.X, size.Y);
 
-            // Обработка фокуса: если мышь над окном игры, перехватываем ввод
-            if (ImGui.IsItemHovered())
-            {
-                // Тут нужно хитро транслировать координаты мыши
-                // ImGui Mouse -> Window Local -> Game World
+                if (ImGui.IsItemHovered() && Raylib.IsMouseButtonPressed(MouseButton.Left))
+                {
+                    Vector2 mousePos = GetMousePositionInGame(gameCamera);
+                    var query = new QueryDescription().WithAll<TransformComponent>();
+                    world.Query(in query, (Entity entity, ref TransformComponent transform) =>
+                    {
+                        var rect = new Rectangle(transform.Position.X, transform.Position.Y, 32, 32);
+                        if (Raylib.CheckCollisionPointRec(mousePos, rect))
+                        {
+                            _selectedEntity = entity;
+                        }
+                    });
+                }
             }
 
             ImGui.End();
@@ -128,9 +140,14 @@ namespace Isotope.Client.Editor
             // Placeholder for editor camera logic
         }
 
-        private void DrawEditorGizmos()
+        private void DrawEditorGizmos(World world)
         {
-            // Placeholder for editor gizmos
+            if (_selectedEntity != Entity.Null)
+            {
+                ref var t = ref world.Get<TransformComponent>(_selectedEntity);
+                // Рисуем желтую рамку вокруг объекта
+                Raylib.DrawRectangleLines((int)t.Position.X, (int)t.Position.Y, 32, 32, Color.Yellow);
+            }
         }
 
         public Vector2 GetMousePositionInGame(Camera2D gameCamera)

@@ -20,8 +20,7 @@ public class GameLoop
 
     public World World { get; private set; }
     public Camera2D Camera { get; private set; }
-
-    private WorldMap _map;
+    public WorldMap Map { get; private set; }
     private HierarchySystem _hierarchySystem;
     private PhysicsSystem _physicsSystem;
     private InputSystem _inputSystem;
@@ -50,7 +49,7 @@ public class GameLoop
         SpawnEntities();
 
         _hierarchySystem = new HierarchySystem(World);
-        _physicsSystem = new PhysicsSystem(World, _map);
+        _physicsSystem = new PhysicsSystem(World, Map);
         _inputSystem = new InputSystem(World);
         _entityRenderSystem = new EntityRenderSystem(World);
         _lightingPass = new LightingPass(1280, 720);
@@ -88,7 +87,7 @@ public class GameLoop
         _entityRenderSystem.Update(0f);
         Raylib.EndMode2D();
 
-        _lightingPass.DrawLights(World, _map, Camera);
+        _lightingPass.DrawLights(World, Map, Camera);
         _lightingPass.RenderToScreen();
     }
 
@@ -121,10 +120,10 @@ public class GameLoop
 
     private void InitializeMap()
     {
-        _map = new WorldMap(50, 50);
-        for (int i = 0; i < _map.GetRawTiles().Length; i++)
+        Map = new WorldMap(50, 50);
+        for (int i = 0; i < Map.GetRawTiles().Length; i++)
         {
-            _map.GetRawTiles()[i].FloorId = 1;
+            Map.GetRawTiles()[i].FloorId = 1;
         }
     }
 
@@ -175,11 +174,11 @@ public class GameLoop
 
     private void RenderMap()
     {
-        for (int y = 0; y < _map.Height; y++)
+        for (int y = 0; y < Map.Height; y++)
         {
-            for (int x = 0; x < _map.Width; x++)
+            for (int x = 0; x < Map.Width; x++)
             {
-                ref readonly var tile = ref _map.GetTile(x, y);
+                ref readonly var tile = ref Map.GetTile(x, y);
 
                 if (tile.FloorId != 0)
                 {

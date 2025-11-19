@@ -25,6 +25,8 @@ namespace Isotope.Client
 
                 editor.Draw(
                     game.World,
+                    game.Map,
+                    game.Camera,
                     gameUpdate: () => game.Update(),
                     gameRender: () => game.Render()
                 );
