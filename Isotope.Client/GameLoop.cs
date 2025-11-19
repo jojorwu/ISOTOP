@@ -15,6 +15,9 @@ using sbf.raylib.imgui;
 using System.Collections.Generic;
 using System.Numerics;
 
+/// <summary>
+/// The main game loop, responsible for managing the game state, systems, and rendering.
+/// </summary>
 public class GameLoop
 {
     private const double TickRate = 1.0 / 60.0;
@@ -36,6 +39,9 @@ public class GameLoop
 
     private Dictionary<string, Texture2D> _tileTextureCache = new();
 
+    /// <summary>
+    /// Runs the main game loop.
+    /// </summary>
     public void Run()
     {
         Raylib.InitWindow(ScreenWidth, ScreenHeight, "ISOTOPE ENGINE [DEBUG]");

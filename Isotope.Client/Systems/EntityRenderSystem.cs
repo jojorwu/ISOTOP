@@ -6,12 +6,23 @@ using System.Collections.Generic;
 
 namespace Isotope.Client.Systems;
 
+/// <summary>
+/// A system that renders entities with a sprite component.
+/// </summary>
 public partial class EntityRenderSystem : BaseSystem<World, float>
 {
     private Dictionary<string, Texture2D> _textureCache = new();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityRenderSystem"/> class.
+    /// </summary>
+    /// <param name="world">The game world.</param>
     public EntityRenderSystem(World world) : base(world) { }
 
+    /// <summary>
+    /// Updates the system, rendering all entities with a sprite component.
+    /// </summary>
+    /// <param name="deltaTime">The time since the last update.</param>
     public override void Update(in float deltaTime)
     {
         var query = new QueryDescription().WithAll<TransformComponent, SpriteComponent>();

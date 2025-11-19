@@ -7,6 +7,9 @@ using Isotope.Core.Tiles;
 
 namespace Isotope.Client.Rendering;
 
+/// <summary>
+/// A class that calculates a light polygon for a given light source, taking into account shadows from walls.
+/// </summary>
 public class ShadowCaster
 {
     private List<Vector2> _pointsOfInterest = new List<Vector2>(512);
@@ -16,6 +19,13 @@ public class ShadowCaster
     private struct AnglePoint { public float Angle; public Vector2 Pos; }
     private List<AnglePoint> _sortedPoints = new List<AnglePoint>(128);
 
+    /// <summary>
+    /// Calculates the light polygon for a given light source.
+    /// </summary>
+    /// <param name="map">The world map.</param>
+    /// <param name="lightPos">The position of the light source.</param>
+    /// <param name="radius">The radius of the light source.</param>
+    /// <returns>An array of points representing the vertices of the light polygon.</returns>
     public Vector2[] CalculateLightPolygon(WorldMap map, Vector2 lightPos, float radius)
     {
         _pointsOfInterest.Clear();

@@ -6,22 +6,39 @@ using System.Numerics;
 
 namespace Isotope.Client.Rendering;
 
+/// <summary>
+/// A rendering pass that handles lighting and shadows.
+/// </summary>
 public class LightingPass
 {
     private RenderTexture2D _lightMap;
     private ShadowCaster _shadowCaster;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LightingPass"/> class.
+    /// </summary>
+    /// <param name="width">The width of the light map.</param>
+    /// <param name="height">The height of the light map.</param>
     public LightingPass(int width, int height)
     {
         _lightMap = Raylib.LoadRenderTexture(width, height);
         _shadowCaster = new ShadowCaster();
     }
 
+    /// <summary>
+    /// Unloads the light map texture.
+    /// </summary>
     public void Unload()
     {
         Raylib.UnloadRenderTexture(_lightMap);
     }
 
+    /// <summary>
+    /// Draws all light sources in the world to the light map.
+    /// </summary>
+    /// <param name="world">The game world.</param>
+    /// <param name="map">The world map.</param>
+    /// <param name="cam">The game camera.</param>
     public void DrawLights(World world, WorldMap map, Camera2D cam)
     {
         Raylib.BeginTextureMode(_lightMap);
@@ -49,6 +66,9 @@ public class LightingPass
         Raylib.EndTextureMode();
     }
 
+    /// <summary>
+    /// Renders the light map to the screen.
+    /// </summary>
     public void RenderToScreen()
     {
         Raylib.BeginBlendMode(BlendMode.Multiply);

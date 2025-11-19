@@ -6,16 +6,29 @@ using System.Numerics;
 
 namespace Isotope.Core.Systems;
 
+/// <summary>
+/// A system that handles physics and collision for entities.
+/// </summary>
 public partial class PhysicsSystem : ParallelSystem
 {
     private readonly WorldMap _map;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PhysicsSystem"/> class.
+    /// </summary>
+    /// <param name="world">The game world.</param>
+    /// <param name="map">The world map.</param>
     public PhysicsSystem(World world, WorldMap map)
         : base(world, new QueryDescription().WithAll<TransformComponent, BodyComponent>())
     {
         _map = map;
     }
 
+    /// <summary>
+    /// Updates a chunk of entities, applying physics and collision.
+    /// </summary>
+    /// <param name="chunk">The chunk to update.</param>
+    /// <param name="deltaTime">The time since the last update.</param>
     protected override void UpdateChunk(ref Chunk chunk, in float deltaTime)
     {
         var positions = chunk.GetSpan<TransformComponent>();

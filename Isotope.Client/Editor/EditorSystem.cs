@@ -7,6 +7,9 @@ using Arch.Core;
 
 namespace Isotope.Client.Editor;
 
+/// <summary>
+/// A system that manages the in-game editor.
+/// </summary>
 public class EditorSystem
 {
     private WorldMap _map;
@@ -16,12 +19,21 @@ public class EditorSystem
     private int _layerMode = 0; // 0 = Floor, 1 = Wall, 2 = Objects
     private string _selectedEntity = "Toolbox";
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EditorSystem"/> class.
+    /// </summary>
+    /// <param name="map">The world map.</param>
+    /// <param name="world">The game world.</param>
     public EditorSystem(WorldMap map, World world)
     {
         _map = map;
         _world = world;
     }
 
+    /// <summary>
+    /// Updates the editor system, drawing the editor UI and handling input.
+    /// </summary>
+    /// <param name="camera">The game camera.</param>
     public void Update(Camera2D camera)
     {
         if (Raylib.IsKeyPressed(KeyboardKey.F1)) _isActive = !_isActive;

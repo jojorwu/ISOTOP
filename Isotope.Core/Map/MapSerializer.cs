@@ -2,17 +2,39 @@ using Isotope.Core.Map;
 using System;
 using System.IO;
 using System.Text.Json;
-
+/// <summary>
+/// Provides functionality for saving and loading map data.
+/// </summary>
 public static class MapSerializer
 {
+    /// <summary>
+    /// Represents the data structure for serializing a map.
+    /// </summary>
     public class MapData
     {
+        /// <summary>
+        /// The width of the map.
+        /// </summary>
         public int Width { get; set; }
+        /// <summary>
+        /// The height of the map.
+        /// </summary>
         public int Height { get; set; }
+        /// <summary>
+        /// The array of floor tiles.
+        /// </summary>
         public ushort[] Floors { get; set; }
+        /// <summary>
+        /// The array of wall tiles.
+        /// </summary>
         public ushort[] Walls { get; set; }
     }
 
+    /// <summary>
+    /// Saves the specified map to a file.
+    /// </summary>
+    /// <param name="map">The map to save.</param>
+    /// <param name="filename">The name of the file to save the map to.</param>
     public static void Save(WorldMap map, string filename)
     {
         var data = new MapData
@@ -35,6 +57,11 @@ public static class MapSerializer
         Console.WriteLine($"Map saved to {filename}");
     }
 
+    /// <summary>
+    /// Loads a map from the specified file.
+    /// </summary>
+    /// <param name="map">The map to load the data into.</param>
+    /// <param name="filename">The name of the file to load the map from.</param>
     public static void Load(WorldMap map, string filename)
     {
         if (!File.Exists(filename)) return;

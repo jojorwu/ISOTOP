@@ -6,12 +6,23 @@ using System.Numerics;
 
 namespace Isotope.Client.Systems;
 
+/// <summary>
+/// A system that handles player input.
+/// </summary>
 public partial class InputSystem : BaseSystem<World, float>
 {
     private readonly float _speed = 200.0f;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InputSystem"/> class.
+    /// </summary>
+    /// <param name="world">The game world.</param>
     public InputSystem(World world) : base(world) { }
 
+    /// <summary>
+    /// Updates the system, handling player input.
+    /// </summary>
+    /// <param name="deltaTime">The time since the last update.</param>
     public override void Update(in float deltaTime)
     {
         var query = new QueryDescription().WithAll<PlayerTag, BodyComponent>();

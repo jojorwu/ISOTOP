@@ -2,10 +2,23 @@ using System.Numerics;
 
 namespace Isotope.Core.Components;
 
-// 3. Физика (твердое тело)
+/// <summary>
+/// Represents the physical properties of an entity for collision and movement.
+/// </summary>
 public struct BodyComponent
 {
-    public Vector2 Velocity; // Текущая скорость
-    public Vector2 Size;     // Размер хитбокса (например, 16x16)
-    public bool IsStatic;    // Если true - это стена или прикрученный стол
+    /// <summary>
+    /// The current velocity of the entity.
+    /// </summary>
+    public Vector2 Velocity;
+
+    /// <summary>
+    /// The size of the hitbox, e.g., 16x16.
+    /// </summary>
+    public Vector2 Size;
+
+    /// <summary>
+    /// A value indicating whether the entity is static, such as a wall.
+    /// </summary>
+    public bool IsStatic;
 }

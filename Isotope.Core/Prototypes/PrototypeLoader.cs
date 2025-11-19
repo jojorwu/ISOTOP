@@ -6,8 +6,15 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Isotope.Core.Prototypes;
 
+/// <summary>
+/// Provides functionality for loading entity prototypes from files.
+/// </summary>
 public static class PrototypeLoader
 {
+    /// <summary>
+    /// Loads all entity prototypes from the specified directory.
+    /// </summary>
+    /// <param name="path">The path to the directory containing the prototype files.</param>
     public static void LoadPrototypesFromDirectory(string path)
     {
         var deserializer = new DeserializerBuilder()
