@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,6 +10,10 @@
   <ItemGroup>
     <PackageReference Include="Arch" Version="2.1.0" />
     <PackageReference Include="Raylib-cs" Version="7.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Isotope.Core\Isotope.Core.csproj" />
   </ItemGroup>
 
 </Project>

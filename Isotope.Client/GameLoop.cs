@@ -1,55 +1,88 @@
 using Raylib_cs;
 using Arch.Core;
+using Isotope.Core;
+using System.Numerics;
 
 public class GameLoop
 {
-    // 60 тиков в секунду для физики/логики (как в файтингах или CS2)
-    const double TickRate = 1.0 / 60.0;
+    private const double TickRate = 1.0 / 60.0;
+    private const int TileSize = 32;
+
     private World _world;
+    private TileRegistry _tileRegistry;
+    private Map _map;
+    private CameraService _cameraService;
 
     public void Run()
     {
-        Raylib.InitWindow(1280, 720, "ISOTOPE ENGINE [DEBUG]");
-        Raylib.SetTargetFPS(144); // Рендер максимально плавный, отдельно от физики
+        const int screenWidth = 1280;
+        const int screenHeight = 720;
+        Raylib.InitWindow(screenWidth, screenHeight, "ISOTOPE ENGINE [DEBUG]");
+        Raylib.SetTargetFPS(144);
 
         _world = World.Create();
-        // Тут инициализируем системы: MovementSystem, InputSystem, RenderSystem
+        _cameraService = new CameraService(screenWidth, screenHeight);
+
+        // --- Map Initialization ---
+        _tileRegistry = new TileRegistry();
+        _tileRegistry.RegisterTiles();
+
+        _map = new Map(50, 30);
+        _map.GenerateSimpleTestMap(_tileRegistry);
 
         double accumulator = 0.0;
         double lastTime = Raylib.GetTime();
 
         while (!Raylib.WindowShouldClose())
         {
+            // --- Input and Updates ---
+            _cameraService.Update();
+
             double currentTime = Raylib.GetTime();
             double frameTime = currentTime - lastTime;
             lastTime = currentTime;
 
-            // Защита от "спирали смерти" (если лагает, не пытаемся догнать вечность)
             if (frameTime > 0.25) frameTime = 0.25;
 
             accumulator += frameTime;
 
-            // --- ФИЗИКА И ЛОГИКА (FIXED UPDATE) ---
             while (accumulator >= TickRate)
             {
-                // Тут считаем столкновения, атмосферу, хим. реакции
-                // RunSystems(_world, TickRate);
+                // Logic updates here
                 accumulator -= TickRate;
             }
 
-            // --- РЕНДЕР (INTERPOLATION) ---
-            // alpha нужен, чтобы плавно рисовать движение между тиками
             double alpha = accumulator / TickRate;
 
+            // --- Rendering ---
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.Black);
 
-            // RenderSystems(_world, alpha);
-            Raylib.DrawFPS(10, 10);
+            Raylib.BeginMode2D(_cameraService.Camera);
+            RenderMap();
+            Raylib.EndMode2D();
 
+            Raylib.DrawFPS(10, 10);
             Raylib.EndDrawing();
         }
 
         Raylib.CloseWindow();
+    }
+
+    private void RenderMap()
+    {
+        for (int y = 0; y < _map.Height; y++)
+        {
+            for (int x = 0; x < _map.Width; x++)
+            {
+                int index = y * _map.Width + x;
+                ushort tileId = _map.Tiles[index];
+                var tileDef = _tileRegistry.GetTile(tileId);
+
+                Color color = tileDef.IsSolid ? Color.Gray : Color.DarkGray;
+
+                Raylib.DrawRectangle(x * TileSize, y * TileSize, TileSize, TileSize, color);
+            }
+        }
     }
 }
