@@ -13,7 +13,6 @@ namespace Isotope.Client.Editor
     public class EditorLayer
     {
         private EditorContext _ctx;
-        private Core.Systems.DoorSystem _doorSystem;
         private HierarchyPanel _hierarchyPanel;
         private InspectorPanel _inspectorPanel;
         private ConsolePanel _consolePanel;
@@ -37,10 +36,9 @@ namespace Isotope.Client.Editor
         private bool _isDragging = false;
         private Vector2 _dragOffset;
 
-        public EditorLayer(World world, Core.Systems.DoorSystem doorSystem)
+        public EditorLayer(World world)
         {
             _ctx = new EditorContext { World = world };
-            _doorSystem = doorSystem;
             _hierarchyPanel = new HierarchyPanel(_ctx);
             _inspectorPanel = new InspectorPanel(_ctx);
             _consolePanel = new ConsolePanel();
@@ -308,11 +306,6 @@ namespace Isotope.Client.Editor
 
                     if (clickedEntity != Entity.Null)
                     {
-                        if (world.Has<DoorComponent>(clickedEntity))
-                        {
-                            _doorSystem.ToggleDoor(clickedEntity);
-                        }
-
                         _ctx.Select(clickedEntity);
                         _isDragging = true;
                         ref var t = ref _ctx.World.Get<TransformComponent>(clickedEntity);

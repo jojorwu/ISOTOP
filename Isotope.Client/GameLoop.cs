@@ -25,7 +25,6 @@ public class GameLoop
     public World World { get; private set; }
     public Camera2D Camera { get; private set; }
     public WorldMap Map { get; private set; }
-    private DoorSystem _doorSystem;
     private GasMap _gasMap;
     private EditorLayer _editor;
     private HierarchySystem _hierarchySystem;
@@ -35,7 +34,8 @@ public class GameLoop
     private AtmosRenderSystem _atmosRenderSystem;
     private LightingPass _lightingPass;
     private AtmosSystem _atmosSystem;
-    private VisualStateSystem _visualStateSystem;
+    private ScriptSystem _scriptSystem;
+    private InteractionSystem _interactionSystem;
     private LuaSystem _luaSystem;
     private EngineApi _engineApi;
 
@@ -63,10 +63,10 @@ public class GameLoop
         _atmosRenderSystem = new AtmosRenderSystem(_gasMap);
         _lightingPass = new LightingPass(1280, 720);
         _atmosSystem = new AtmosSystem(_gasMap, Map);
-        _doorSystem = new DoorSystem(World);
-        _visualStateSystem = new VisualStateSystem(World);
+        _scriptSystem = new ScriptSystem(World, _engineApi);
+        _interactionSystem = new InteractionSystem(World, _scriptSystem, Camera);
 
-        _editor = new EditorLayer(World, _doorSystem);
+        _editor = new EditorLayer(World);
         _editor.Init();
 
         SpawnEntities();
@@ -86,7 +86,8 @@ public class GameLoop
             _hierarchySystem.Update(in deltaTime);
             _physicsSystem.Update(in deltaTime);
             _atmosSystem.Update(deltaTime);
-            _visualStateSystem.Update(in deltaTime);
+            _scriptSystem.Update(in deltaTime);
+            _interactionSystem.Update();
             _accumulator -= TickRate;
         }
 
