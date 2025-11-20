@@ -27,6 +27,12 @@ public class WorldMap
         return _tiles;
     }
 
+    public void SetTile(int x, int y, int layer, ushort tileId)
+    {
+        if (x < 0 || x >= Width || y < 0 || y >= Height) return;
+        _tiles[y * Width + x].SetLayer(layer, tileId);
+    }
+
     public TileDefinition GetTileDefForPhysics(int x, int y)
     {
         if (x < 0 || x >= Width || y < 0 || y >= Height) return null;

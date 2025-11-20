@@ -1,4 +1,6 @@
 // Isotope.Core/Tiles/TileRegistry.cs
+using System.Linq;
+
 namespace Isotope.Core.Tiles;
 
 public static class TileRegistry
@@ -17,5 +19,10 @@ public static class TileRegistry
     public static TileDefinition Get(ushort id)
     {
         return _definitions[id]; // O(1) доступ
+    }
+
+    public static IEnumerable<TileDefinition> GetAllDefinitions()
+    {
+        return _definitions.Where(d => d != null);
     }
 }

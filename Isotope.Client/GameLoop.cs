@@ -13,6 +13,10 @@ using Raylib_cs;
 using Isotope.Client;
 using System.Collections.Generic;
 using System.Numerics;
+using Isotope.Core.Atmos;
+using Isotope.Core.Chemistry;
+
+using Isotope.Client.Editor;
 
 public class GameLoop
 {
@@ -20,17 +24,20 @@ public class GameLoop
 
     public World World { get; private set; }
     public Camera2D Camera { get; private set; }
-
-    private WorldMap _map;
+    public WorldMap Map { get; private set; }
+    private DoorSystem _doorSystem;
+    private GasMap _gasMap;
+    private EditorLayer _editor;
     private HierarchySystem _hierarchySystem;
     private PhysicsSystem _physicsSystem;
     private InputSystem _inputSystem;
     private EntityRenderSystem _entityRenderSystem;
+    private AtmosRenderSystem _atmosRenderSystem;
     private LightingPass _lightingPass;
+    private AtmosSystem _atmosSystem;
+    private VisualStateSystem _visualStateSystem;
     private LuaSystem _luaSystem;
     private EngineApi _engineApi;
-
-    private Dictionary<string, Texture2D> _tileTextureCache = new();
 
     private double _accumulator = 0.0;
 
@@ -47,13 +54,22 @@ public class GameLoop
 
         LoadContent();
         InitializeMap();
-        SpawnEntities();
 
+        // Systems must be created before EditorLayer so they can be passed in
         _hierarchySystem = new HierarchySystem(World);
-        _physicsSystem = new PhysicsSystem(World, _map);
+        _physicsSystem = new PhysicsSystem(World, Map);
         _inputSystem = new InputSystem(World);
         _entityRenderSystem = new EntityRenderSystem(World);
+        _atmosRenderSystem = new AtmosRenderSystem(_gasMap);
         _lightingPass = new LightingPass(1280, 720);
+        _atmosSystem = new AtmosSystem(_gasMap, Map);
+        _doorSystem = new DoorSystem(World);
+        _visualStateSystem = new VisualStateSystem(World);
+
+        _editor = new EditorLayer(World, _doorSystem);
+        _editor.Init();
+
+        SpawnEntities();
     }
 
     public void Update()
@@ -69,6 +85,8 @@ public class GameLoop
             _inputSystem.Update(in deltaTime);
             _hierarchySystem.Update(in deltaTime);
             _physicsSystem.Update(in deltaTime);
+            _atmosSystem.Update(deltaTime);
+            _visualStateSystem.Update(in deltaTime);
             _accumulator -= TickRate;
         }
 
@@ -83,13 +101,22 @@ public class GameLoop
 
     public void Render()
     {
-        Raylib.BeginMode2D(Camera);
-        RenderMap();
-        _entityRenderSystem.Update(0f);
-        Raylib.EndMode2D();
-
-        _lightingPass.DrawLights(World, _map, Camera);
-        _lightingPass.RenderToScreen();
+        _editor.Draw(
+            World,
+            Map,
+            Camera,
+            gameUpdate: () => Update(),
+            gameRender: () => {
+                Raylib.BeginMode2D(Camera);
+                RenderMap();
+                _entityRenderSystem.Update(0f);
+                _atmosRenderSystem.Draw(Camera);
+                Raylib.EndMode2D();
+                _lightingPass.DrawLights(World, Map, Camera);
+                _lightingPass.RenderToScreen();
+            },
+            spawnEntities: () => SpawnEntities()
+        );
     }
 
     public void Shutdown()
@@ -102,6 +129,7 @@ public class GameLoop
         _engineApi = new EngineApi(World);
         _luaSystem = new LuaSystem(_engineApi);
 
+        ReagentRegistry.RegisterDefaults();
         TileRegistry.Register(new TileDefinition { Name = "Floor_Plating", TexturePath = "Content/floors/plating.png" });
         TileRegistry.Register(new TileDefinition { Name = "Wall_Reinforced", TexturePath = "Content/walls/r_wall.png", IsSolid = true, IsOpaque = true });
 
@@ -111,24 +139,22 @@ public class GameLoop
 
     private void UnloadContent()
     {
-        foreach (var texture in _tileTextureCache.Values)
-        {
-            Raylib.UnloadTexture(texture);
-        }
-        _tileTextureCache.Clear();
+        ResourceManager.UnloadAll();
         _lightingPass.Unload();
     }
 
     private void InitializeMap()
     {
-        _map = new WorldMap(50, 50);
-        for (int i = 0; i < _map.GetRawTiles().Length; i++)
+        Map = new WorldMap(50, 50);
+        _gasMap = new GasMap(50, 50);
+        for (int i = 0; i < Map.GetRawTiles().Length; i++)
         {
-            _map.GetRawTiles()[i].FloorId = 1;
+            Map.GetRawTiles()[i].FloorId = 1;
         }
+        _gasMap.Plasma[25 * 50 + 25] = 5000;
     }
 
-    private void SpawnEntities()
+    public void SpawnEntities()
     {
         PrototypeManager.Spawn(World, "Player", new Vector2(250, 250));
         PrototypeManager.Spawn(World, "Toolbox", new Vector2(350, 250));
@@ -175,18 +201,18 @@ public class GameLoop
 
     private void RenderMap()
     {
-        for (int y = 0; y < _map.Height; y++)
+        for (int y = 0; y < Map.Height; y++)
         {
-            for (int x = 0; x < _map.Width; x++)
+            for (int x = 0; x < Map.Width; x++)
             {
-                ref readonly var tile = ref _map.GetTile(x, y);
+                ref readonly var tile = ref Map.GetTile(x, y);
 
                 if (tile.FloorId != 0)
                 {
                     var floorDef = TileRegistry.Get(tile.FloorId);
                     if (floorDef != null)
                     {
-                        var texture = GetTileTexture(floorDef.TexturePath);
+                        var texture = ResourceManager.GetTexture(floorDef.TexturePath);
                         Raylib.DrawTexture(texture, x * WorldMap.TILE_SIZE, y * WorldMap.TILE_SIZE, Color.White);
                     }
                 }
@@ -196,7 +222,7 @@ public class GameLoop
                     var wallDef = TileRegistry.Get(tile.WallId);
                     if (wallDef != null)
                     {
-                        var texture = GetTileTexture(wallDef.TexturePath);
+                        var texture = ResourceManager.GetTexture(wallDef.TexturePath);
                         Raylib.DrawTexture(texture, x * WorldMap.TILE_SIZE, y * WorldMap.TILE_SIZE, Color.White);
                     }
                 }
@@ -204,15 +230,4 @@ public class GameLoop
         }
     }
 
-    private Texture2D GetTileTexture(string path)
-    {
-        if (_tileTextureCache.TryGetValue(path, out var texture))
-        {
-            return texture;
-        }
-
-        var newTexture = Raylib.LoadTexture(path);
-        _tileTextureCache[path] = newTexture;
-        return newTexture;
-    }
 }

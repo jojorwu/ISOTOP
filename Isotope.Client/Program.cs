@@ -1,6 +1,6 @@
 using Isotope.Client.Editor;
 using Raylib_cs;
-using Isotope.Client;
+using Isotope.Client.Rendering;
 
 namespace Isotope.Client
 {
@@ -11,23 +11,17 @@ namespace Isotope.Client
             Raylib.InitWindow(1600, 900, "Isotope Engine");
             Raylib.SetWindowState(ConfigFlags.ResizableWindow);
             RlImGui.Setup(true);
+            EditorTheme.Apply();
 
             var game = new GameLoop();
             game.Init();
-
-            var editor = new EditorLayer();
-            editor.Init();
 
             while (!Raylib.WindowShouldClose())
             {
                 Raylib.BeginDrawing();
                 Raylib.ClearBackground(Color.DarkGray);
 
-                editor.Draw(
-                    game.World,
-                    gameUpdate: () => game.Update(),
-                    gameRender: () => game.Render()
-                );
+                game.Render();
 
                 Raylib.EndDrawing();
             }
