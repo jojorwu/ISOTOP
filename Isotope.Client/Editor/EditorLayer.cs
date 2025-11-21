@@ -5,6 +5,7 @@ using Arch.Core;
 using ImGuiNET;
 using Raylib_cs;
 using Isotope.Client.Editor.Panels;
+using Isotope.Client.Editor.Tools;
 using Isotope.Core.Map;
 using Isotope.Core.Components;
 
@@ -20,7 +21,9 @@ namespace Isotope.Client.Editor
         private ToolbarPanel _toolbarPanel;
         private TilePalettePanel _tilePalettePanel;
         private ModebarPanel _modebarPanel;
+        private ScriptEditorPanel _scriptEditorPanel;
         private Commands.HistoryManager _historyManager;
+        private ToolManager _toolManager;
 
         private bool _showHierarchy = true;
         private bool _showInspector = true;
@@ -29,6 +32,7 @@ namespace Isotope.Client.Editor
         private bool _showToolbar = true;
         private bool _showTilePalette = true;
         private bool _showModebar = true;
+        private bool _showScriptEditor = false;
 
         private RenderTexture2D _gameViewTexture;
         private bool _isPlaying = false;
@@ -42,8 +46,11 @@ namespace Isotope.Client.Editor
             _hierarchyPanel = new HierarchyPanel(_ctx);
             _inspectorPanel = new InspectorPanel(_ctx);
             _consolePanel = new ConsolePanel();
-            _projectPanel = new ProjectPanel(Directory.GetCurrentDirectory());
-            _toolbarPanel = new ToolbarPanel(_ctx);
+            _scriptEditorPanel = new ScriptEditorPanel();
+            _projectPanel = new ProjectPanel(Directory.GetCurrentDirectory(), _scriptEditorPanel);
+            _toolManager = new ToolManager();
+            _toolManager.DiscoverAndRegisterTools();
+            _toolbarPanel = new ToolbarPanel(_ctx, _toolManager);
             _tilePalettePanel = new TilePalettePanel(_ctx);
             _modebarPanel = new ModebarPanel(_ctx);
             _historyManager = new Commands.HistoryManager();
@@ -81,6 +88,7 @@ namespace Isotope.Client.Editor
             if(_showToolbar) _toolbarPanel.Draw();
             if(_showTilePalette) _tilePalettePanel.Draw();
             if(_showModebar) _modebarPanel.Draw();
+            if(_showScriptEditor) _scriptEditorPanel.Draw();
 
             DrawSceneView(world, gameCamera, map);
             HandleHotkeys();
@@ -116,6 +124,7 @@ namespace Isotope.Client.Editor
                     ImGui.MenuItem("Toolbar", "", ref _showToolbar);
                     ImGui.MenuItem("Tile Palette", "", ref _showTilePalette);
                     ImGui.MenuItem("Modebar", "", ref _showModebar);
+                    ImGui.MenuItem("Script Editor", "", ref _showScriptEditor);
                     ImGui.EndMenu();
                 }
                 if (ImGui.BeginMenu("GameObject"))
@@ -211,7 +220,7 @@ namespace Isotope.Client.Editor
             {
                 Vector2 mouseWorld = GetMousePositionInGame(gameCamera);
                 var (gx, gy) = map.WorldToGrid(mouseWorld.X, mouseWorld.Y);
-                _toolbarPanel.ActiveTool.OnDrawGizmos(map, new Vector2(gx, gy));
+                _toolManager.ActiveTool?.DrawGizmos(map, new Vector2(gx, gy), _ctx);
             }
             else if (_ctx.CurrentMode == EditorMode.Object)
             {
@@ -294,7 +303,16 @@ namespace Isotope.Client.Editor
                 Vector2 mouseWorld = GetMousePositionInGame(gameCamera);
                 var (gx, gy) = map.WorldToGrid(mouseWorld.X, mouseWorld.Y);
                 Vector2 gridPos = new Vector2(gx, gy);
-                _toolbarPanel.ActiveTool.OnUpdate(world, map, gridPos, _historyManager, _ctx);
+
+                var activeTool = _toolManager.ActiveTool;
+                if(activeTool == null) return;
+
+                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                    activeTool.OnMouseDown(world, map, gridPos, _historyManager, _ctx);
+                if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+                    activeTool.OnMouseMove(world, map, gridPos, _historyManager, _ctx);
+                if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+                    activeTool.OnMouseUp(world, map, gridPos, _historyManager, _ctx);
             }
             else if (_ctx.CurrentMode == EditorMode.Object)
             {

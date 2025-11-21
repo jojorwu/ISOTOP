@@ -1,5 +1,6 @@
 using Arch.Core;
 using Isotope.Core.Components;
+using Isotope.Core.Components.Animation;
 using Raylib_cs;
 using System;
 using System.Collections.Generic;
@@ -33,11 +34,12 @@ public static class PrototypeManager
             switch (compProto.Type)
             {
                 case "Sprite":
+                    var texturePath = GetValue<string>(compProto.Values, "texturePath");
                     var sprite = new SpriteComponent
                     {
-                        TexturePath = GetValue<string>(compProto.Values, "texturePath"),
+                        TexturePath = texturePath,
+                        Texture = Isotope.Client.Rendering.ResourceManager.GetTexture(texturePath),
                         Tint = Color.White,
-                        Visible = true
                     };
                     world.Add<SpriteComponent>(entity, sprite);
                     break;
@@ -70,6 +72,36 @@ public static class PrototypeManager
 
                 case "PlayerTag":
                     world.Add<PlayerTag>(entity);
+                    break;
+
+                case "AnimatedSprite":
+                    var animComp = new AnimatedSpriteComponent
+                    {
+                        Animations = new Dictionary<string, Animation>(),
+                        IsPlaying = true // Default to playing
+                    };
+
+                    var animationsData = GetValue<List<object>>(compProto.Values, "animations");
+                    foreach (var animDataRaw in animationsData)
+                    {
+                        var animData = (Dictionary<object, object>)animDataRaw;
+                        var anim = new Animation
+                        {
+                            Name = (string)animData["name"],
+                            Frames = ((List<object>)animData["frames"]).ConvertAll(i => Convert.ToInt32(i)),
+                            FrameDuration = Convert.ToSingle(animData["frameDuration"]),
+                            IsLooping = Convert.ToBoolean(animData["isLooping"])
+                        };
+                        animComp.Animations[anim.Name] = anim;
+                    }
+
+                    // Set the default animation to the first one defined
+                    if (animationsData.Count > 0)
+                    {
+                        animComp.CurrentAnimation = animComp.Animations.Keys.First();
+                    }
+
+                    world.Add(entity, animComp);
                     break;
             }
         }

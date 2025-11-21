@@ -10,6 +10,7 @@ using Isotope.Core.Systems;
 using Isotope.Core.Tiles;
 using Isotope.Scripting.NLua;
 using Raylib_cs;
+using Isotope.Core.Components.Animation;
 using Isotope.Client;
 using System.Collections.Generic;
 using System.Numerics;
@@ -36,6 +37,7 @@ public class GameLoop
     private AtmosSystem _atmosSystem;
     private ScriptSystem _scriptSystem;
     private InteractionSystem _interactionSystem;
+    private AnimationSystem _animationSystem;
     private LuaSystem _luaSystem;
     private EngineApi _engineApi;
 
@@ -64,6 +66,7 @@ public class GameLoop
         _lightingPass = new LightingPass(1280, 720);
         _atmosSystem = new AtmosSystem(_gasMap, Map);
         _scriptSystem = new ScriptSystem(World, _engineApi);
+        _animationSystem = new AnimationSystem(World);
         _interactionSystem = new InteractionSystem(World, _scriptSystem, Camera);
 
         _editor = new EditorLayer(World);
@@ -87,6 +90,7 @@ public class GameLoop
             _physicsSystem.Update(in deltaTime);
             _atmosSystem.Update(deltaTime);
             _scriptSystem.Update(in deltaTime);
+            _animationSystem.Update(in deltaTime);
             _interactionSystem.Update();
             _accumulator -= TickRate;
         }
@@ -110,7 +114,7 @@ public class GameLoop
             gameRender: () => {
                 Raylib.BeginMode2D(Camera);
                 RenderMap();
-                _entityRenderSystem.Update(0f);
+                _entityRenderSystem.Update(in Camera);
                 _atmosRenderSystem.Draw(Camera);
                 Raylib.EndMode2D();
                 _lightingPass.DrawLights(World, Map, Camera);
