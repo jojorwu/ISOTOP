@@ -1,36 +1,46 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Isotope.Client.Editor.Commands
 {
     public class HistoryManager
     {
-        private Stack<IEditorCommand> _undoStack = new();
-        private Stack<IEditorCommand> _redoStack = new();
+        private const int MaxHistorySize = 100;
+        private readonly LinkedList<IEditorCommand> _undoList = new();
+        private readonly LinkedList<IEditorCommand> _redoList = new();
 
         public void Execute(IEditorCommand cmd)
         {
             cmd.Execute();
-            _undoStack.Push(cmd);
-            _redoStack.Clear();
+            _undoList.AddLast(cmd);
+
+            if (_undoList.Count > MaxHistorySize)
+            {
+                _undoList.RemoveFirst();
+            }
+
+            _redoList.Clear();
         }
 
         public void Undo()
         {
-            if (_undoStack.Count > 0)
+            if (_undoList.Count > 0)
             {
-                var cmd = _undoStack.Pop();
+                var cmd = _undoList.Last.Value;
+                _undoList.RemoveLast();
                 cmd.Undo();
-                _redoStack.Push(cmd);
+                _redoList.AddLast(cmd);
             }
         }
 
         public void Redo()
         {
-            if (_redoStack.Count > 0)
+            if (_redoList.Count > 0)
             {
-                var cmd = _redoStack.Pop();
+                var cmd = _redoList.Last.Value;
+                _redoList.RemoveLast();
                 cmd.Execute();
-                _undoStack.Push(cmd);
+                _undoList.AddLast(cmd);
             }
         }
     }
