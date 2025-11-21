@@ -1,4 +1,5 @@
 using Arch.Core;
+using Isotope.Core.Components;
 using Raylib_cs;
 
 namespace Isotope.Core.Systems;
@@ -30,11 +31,11 @@ public class InteractionSystem
             var query = new QueryDescription().WithAll<Components.TransformComponent, Components.SpriteComponent>();
             _world.Query(in query, (Entity entity, ref Components.TransformComponent transform, ref Components.SpriteComponent sprite) =>
             {
-                // This logic needs to be improved; it doesn't account for sprite size.
-                // For now, it's a simple distance check.
-                if (System.Numerics.Vector2.Distance(transform.Position, worldPos) < 16) // 16px radius
+                if (sprite.Texture.Id == 0) return; // Texture not loaded
+
+                var bounds = new Rectangle(transform.Position.X, transform.Position.Y, sprite.Texture.Width, sprite.Texture.Height);
+                if (Raylib.CheckCollisionPointRec(worldPos, bounds))
                 {
-                    // Found an entity. Trigger the interaction.
                     _scriptSystem.OnInteract(entity);
                 }
             });

@@ -80,8 +80,6 @@ public class GameLoop
         // Using a fixed timestep for physics and logic
         _accumulator += Raylib.GetFrameTime();
 
-        HandleInput();
-
         while (_accumulator >= TickRate)
         {
             var deltaTime = (float)TickRate;
@@ -161,54 +159,36 @@ public class GameLoop
 
     public void SpawnEntities()
     {
-        PrototypeManager.Spawn(World, "Player", new Vector2(250, 250));
-        PrototypeManager.Spawn(World, "Toolbox", new Vector2(350, 250));
-    }
+        var player = PrototypeManager.Spawn(World, "Player", new Vector2(250, 250));
+        var toolbox = PrototypeManager.Spawn(World, "Toolbox", new Vector2(350, 250));
 
-    private void HandleInput()
-    {
-        if (Raylib.IsKeyPressed(KeyboardKey.E))
-        {
-            Entity playerEntity = Entity.Null;
-            var playerQuery = new QueryDescription().WithAll<PlayerTag>();
-            World.Query(in playerQuery, (Entity entity) => { playerEntity = entity; });
+        // TODO: This is a temporary solution to the problem of loading textures for spawned entities.
+        // A better solution would be to have a proper asset management system that handles this automatically.
+        ref var playerSprite = ref World.Get<SpriteComponent>(player);
+        playerSprite.Texture = ResourceManager.GetTexture(playerSprite.TexturePath);
 
-            if (playerEntity == Entity.Null) return;
-
-            Entity closestToolbox = Entity.Null;
-            float closestDist = 100f;
-
-            var toolboxQuery = new QueryDescription().WithAll<SpriteComponent>();
-            World.Query(in toolboxQuery, (Entity entity, ref TransformComponent transform, ref SpriteComponent sprite) =>
-            {
-                if (sprite.TexturePath.Contains("toolbox"))
-                {
-                    float dist = Vector2.Distance(World.Get<TransformComponent>(playerEntity).WorldPosition, transform.WorldPosition);
-                    if (dist < closestDist)
-                    {
-                        closestDist = dist;
-                        closestToolbox = entity;
-                    }
-                }
-            });
-
-            if (closestToolbox != Entity.Null)
-            {
-                ref var transform = ref World.Get<TransformComponent>(closestToolbox);
-                ref var sprite = ref World.Get<SpriteComponent>(closestToolbox);
-
-                transform.Parent = playerEntity;
-                transform.LocalPosition = new Vector2(0, -20);
-                sprite.Visible = false;
-            }
-        }
+        ref var toolboxSprite = ref World.Get<SpriteComponent>(toolbox);
+        toolboxSprite.Texture = ResourceManager.GetTexture(toolboxSprite.TexturePath);
     }
 
     private void RenderMap()
     {
-        for (int y = 0; y < Map.Height; y++)
+        var cameraWorldTopLeft = Raylib.GetScreenToWorld2D(new Vector2(0, 0), Camera);
+        var cameraWorldBottomRight = Raylib.GetScreenToWorld2D(new Vector2(1280, 720), Camera);
+
+        int startX = (int)(cameraWorldTopLeft.X / WorldMap.TILE_SIZE) - 1;
+        int startY = (int)(cameraWorldTopLeft.Y / WorldMap.TILE_SIZE) - 1;
+        int endX = (int)(cameraWorldBottomRight.X / WorldMap.TILE_SIZE) + 1;
+        int endY = (int)(cameraWorldBottomRight.Y / WorldMap.TILE_SIZE) + 1;
+
+        startX = Math.Max(0, startX);
+        startY = Math.Max(0, startY);
+        endX = Math.Min(Map.Width, endX);
+        endY = Math.Min(Map.Height, endY);
+
+        for (int y = startY; y < endY; y++)
         {
-            for (int x = 0; x < Map.Width; x++)
+            for (int x = startX; x < endX; x++)
             {
                 ref readonly var tile = ref Map.GetTile(x, y);
 
