@@ -1,0 +1,34 @@
+using Isotope.Client.Editor;
+using Raylib_cs;
+using Isotope.Client.Rendering;
+
+namespace Isotope.Client
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Raylib.InitWindow(1600, 900, "Isotope Engine");
+            Raylib.SetWindowState(ConfigFlags.ResizableWindow);
+            RlImGui.Setup(true);
+            EditorTheme.Apply();
+
+            var game = new GameLoop();
+            game.Init();
+
+            while (!Raylib.WindowShouldClose())
+            {
+                Raylib.BeginDrawing();
+                Raylib.ClearBackground(Color.DarkGray);
+
+                game.Render();
+
+                Raylib.EndDrawing();
+            }
+
+            game.Shutdown();
+            RlImGui.Shutdown();
+            Raylib.CloseWindow();
+        }
+    }
+}

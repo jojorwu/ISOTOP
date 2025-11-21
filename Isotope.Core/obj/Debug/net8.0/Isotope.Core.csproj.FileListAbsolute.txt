@@ -1,0 +1,13 @@
+/app/Isotope.Core/obj/Debug/net8.0/Isotope.Core.csproj.AssemblyReference.cache
+/app/Isotope.Core/obj/Debug/net8.0/Isotope.Core.GeneratedMSBuildEditorConfig.editorconfig
+/app/Isotope.Core/obj/Debug/net8.0/Isotope.Core.AssemblyInfoInputs.cache
+/app/Isotope.Core/obj/Debug/net8.0/Isotope.Core.AssemblyInfo.cs
+/app/Isotope.Core/obj/Debug/net8.0/Isotope.Core.csproj.CoreCompileInputs.cache
+/app/Isotope.Core/obj/Debug/net8.0/Isotope.Core.sourcelink.json
+/app/Isotope.Core/bin/Debug/net8.0/Isotope.Core.deps.json
+/app/Isotope.Core/bin/Debug/net8.0/Isotope.Core.dll
+/app/Isotope.Core/bin/Debug/net8.0/Isotope.Core.pdb
+/app/Isotope.Core/obj/Debug/net8.0/Isotope.Core.dll
+/app/Isotope.Core/obj/Debug/net8.0/refint/Isotope.Core.dll
+/app/Isotope.Core/obj/Debug/net8.0/Isotope.Core.pdb
+/app/Isotope.Core/obj/Debug/net8.0/ref/Isotope.Core.dll
