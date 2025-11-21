@@ -9,3 +9,6 @@
       values:
         width: 24
         height: 16
+    - type: Script
+      values:
+        scriptPath: "Mods/toolbox.lua"
