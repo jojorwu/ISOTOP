@@ -8,7 +8,6 @@ namespace Isotope.Client.Systems;
 public partial class EntityRenderSystem
 {
     private readonly World _world;
-    private Dictionary<string, Texture2D> _textureCache = new();
 
     public EntityRenderSystem(World world)
     {
@@ -21,23 +20,20 @@ public partial class EntityRenderSystem
 
         _world.Query(in query, (ref TransformComponent t, ref SpriteComponent s) =>
         {
-             if (!s.Visible) return;
+             if (s.Texture.Id == 0) return;
 
-             var texture = GetTexture(s.TexturePath);
+             var texture = s.Texture;
 
-             Raylib.DrawTextureEx(texture, t.WorldPosition, t.Rotation, 1.0f, s.Tint);
+             if (s.SourceRect.Width > 0 && s.SourceRect.Height > 0)
+             {
+                 var destRect = new Rectangle(t.WorldPosition.X, t.WorldPosition.Y, s.SourceRect.Width, s.SourceRect.Height);
+                 Raylib.DrawTexturePro(texture, s.SourceRect, destRect, new System.Numerics.Vector2(s.SourceRect.Width / 2, s.SourceRect.Height / 2), t.Rotation, s.Tint);
+             }
+             else
+             {
+                 Raylib.DrawTextureEx(texture, t.WorldPosition, t.Rotation, 1.0f, s.Tint);
+             }
         });
     }
 
-    private Texture2D GetTexture(string path)
-    {
-        if (_textureCache.TryGetValue(path, out var texture))
-        {
-            return texture;
-        }
-
-        var newTexture = Raylib.LoadTexture(path);
-        _textureCache[path] = newTexture;
-        return newTexture;
-    }
 }

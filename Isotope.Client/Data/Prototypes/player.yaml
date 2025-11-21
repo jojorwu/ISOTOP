@@ -5,6 +5,13 @@
     - type: Sprite
       values:
         texturePath: "Content/entities/player.png"
+    - type: AnimatedSprite
+      values:
+        animations:
+          - name: "idle"
+            frames: [0, 1, 2, 3]
+            frameDuration: 0.2
+            isLooping: true
     - type: Body
       values:
         width: 16
