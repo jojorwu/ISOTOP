@@ -1,0 +1,6 @@
+# C#
+[Bb]in/
+[Oo]bj/
+
+# Logs
+*.log

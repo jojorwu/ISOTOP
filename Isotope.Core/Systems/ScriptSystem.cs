@@ -14,12 +14,17 @@ public class ScriptSystem
 {
     private readonly World _world;
     private readonly object _engineApi; // API object exposed to Lua
-    private readonly Dictionary<Entity, Lua> _luaInstances = new();
+    private readonly Lua _lua; // Single global Lua state
+    private readonly Dictionary<Entity, LuaTable> _entityTables = new();
+    private readonly Dictionary<Entity, LuaFunction> _updateFunctions = new();
 
     public ScriptSystem(World world, object engineApi)
     {
         _world = world;
         _engineApi = engineApi;
+        _lua = new Lua();
+        _lua.LoadCLRPackage();
+        _lua["Game"] = _engineApi;
     }
 
     public void Update(in float dt)
@@ -34,12 +39,12 @@ public class ScriptSystem
                 InitializeScript(entity, ref script);
             }
 
-            if (_luaInstances.TryGetValue(entity, out var lua))
+            if (_updateFunctions.TryGetValue(entity, out var updateFunction))
             {
                 try
                 {
-                    var updateFunction = lua["OnUpdate"] as LuaFunction;
-                    updateFunction?.Call(dt);
+                    // Pass the entity's table as the first argument ('self')
+                    updateFunction.Call(_entityTables[entity], dt);
                 }
                 catch (Exception e)
                 {
@@ -49,7 +54,7 @@ public class ScriptSystem
         });
 
         // Clean up Lua instances for entities that no longer have a ScriptComponent
-        var allWithInstances = new List<Entity>(_luaInstances.Keys);
+        var allWithInstances = new List<Entity>(_entityTables.Keys);
         foreach(var entity in allWithInstances)
         {
             if(!_world.IsAlive(entity) || !_world.Has<ScriptComponent>(entity))
@@ -64,12 +69,14 @@ public class ScriptSystem
     /// </summary>
     public void OnInteract(Entity target)
     {
-        if (_world.Has<ScriptComponent>(target) && _luaInstances.TryGetValue(target, out var lua))
+        if (_world.Has<ScriptComponent>(target) && _entityTables.TryGetValue(target, out var entityTable))
         {
             try
             {
-                var interactFunction = lua["OnInteract"] as LuaFunction;
-                interactFunction?.Call();
+                if (entityTable["OnInteract"] is LuaFunction interactFunction)
+                {
+                    interactFunction.Call(entityTable); // Pass the instance table as 'self'
+                }
             }
             catch (Exception e)
             {
@@ -90,16 +97,38 @@ public class ScriptSystem
 
         try
         {
-            var lua = new Lua();
-            lua.LoadCLRPackage();
-            lua["Game"] = _engineApi;
-            lua["EntityId"] = entity.Id;
+            // Execute the script, which should return a table (our script's "class")
+            var result = _lua.DoFile(script.ScriptPath);
+            if (result == null || result.Length == 0 || !(result[0] is LuaTable scriptClass))
+            {
+                Console.WriteLine($"[ScriptSystem ERROR] Script {script.ScriptPath} did not return a table.");
+                script.IsInitialized = true;
+                return;
+            }
 
-            lua.DoFile(script.ScriptPath);
-            _luaInstances[entity] = lua;
+            // Create the instance table for this entity
+            var entityTable = _lua.NewTable($"entity_instance_{entity.Id}");
+            entityTable["EntityId"] = entity.Id;
 
-            var createFunction = lua["OnCreate"] as LuaFunction;
-            createFunction?.Call();
+            // Set up the metatable for inheritance.
+            // This makes the instance table fall back to the class table for methods.
+            var metatable = _lua.NewTable("metatable");
+            metatable["__index"] = scriptClass;
+            entityTable.Metatable = metatable;
+
+            _entityTables[entity] = entityTable;
+
+            // Call the OnCreate method on the new instance
+            if (entityTable["OnCreate"] is LuaFunction createFunction)
+            {
+                createFunction.Call(entityTable); // Pass the instance table as 'self'
+            }
+
+            // Cache the update function for this instance
+            if (entityTable["OnUpdate"] is LuaFunction updateFunction)
+            {
+                _updateFunctions[entity] = updateFunction;
+            }
         }
         catch (Exception e)
         {
@@ -111,10 +140,11 @@ public class ScriptSystem
 
     private void CleanupScript(Entity entity)
     {
-        if (_luaInstances.TryGetValue(entity, out var lua))
+        if (_entityTables.Remove(entity, out var table))
         {
-            lua.Dispose();
-            _luaInstances.Remove(entity);
+            table.Dispose(); // Dispose the table to release resources in NLua
         }
+        _updateFunctions.Remove(entity);
+        // No need for DoString, the GC will handle the table if it's not referenced.
     }
 }
