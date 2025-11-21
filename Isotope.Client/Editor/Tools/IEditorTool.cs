@@ -1,13 +1,21 @@
 using Arch.Core;
 using Isotope.Core.Map;
 using System.Numerics;
+using Isotope.Client.Editor.Commands;
 
 namespace Isotope.Client.Editor.Tools
 {
     public interface IEditorTool
     {
         string Name { get; }
-        void OnUpdate(World world, WorldMap map, Vector2 mouseGridPos, Commands.HistoryManager history, EditorContext ctx);
-        void OnDrawGizmos(WorldMap map, Vector2 mouseGridPos);
+
+        void OnActivate();
+        void OnDeactivate();
+
+        void OnMouseDown(World world, WorldMap map, Vector2 mouseGridPos, HistoryManager history, EditorContext ctx);
+        void OnMouseMove(World world, WorldMap map, Vector2 mouseGridPos, HistoryManager history, EditorContext ctx);
+        void OnMouseUp(World world, WorldMap map, Vector2 mouseGridPos, HistoryManager history, EditorContext ctx);
+
+        void DrawGizmos(WorldMap map, Vector2 mouseGridPos, EditorContext ctx);
     }
 }

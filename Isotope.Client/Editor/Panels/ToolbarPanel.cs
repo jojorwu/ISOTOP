@@ -6,38 +6,31 @@ namespace Isotope.Client.Editor.Panels
 {
     public class ToolbarPanel
     {
-        private EditorContext _ctx;
-        private IEditorTool[] _tools;
-        private int _activeToolIndex = 0;
+        private readonly EditorContext _ctx;
+        private readonly ToolManager _toolManager;
 
-        public IEditorTool ActiveTool => _tools[_activeToolIndex];
-
-        public ToolbarPanel(EditorContext ctx)
+        public ToolbarPanel(EditorContext ctx, ToolManager toolManager)
         {
             _ctx = ctx;
-            _tools = new IEditorTool[]
-            {
-                new BrushTool(),
-                new RectTool(),
-                new EyedropperTool()
-            };
+            _toolManager = toolManager;
         }
 
         public void Draw()
         {
             ImGui.Begin("Tools", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize);
 
-            for (int i = 0; i < _tools.Length; i++)
+            foreach (var tool in _toolManager.Tools)
             {
-                if (i == _activeToolIndex)
+                bool isActive = _toolManager.ActiveTool == tool;
+                if (isActive)
                     ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0.5f, 0, 1));
 
-                if (ImGui.Button(_tools[i].Name))
+                if (ImGui.Button(tool.Name))
                 {
-                    _activeToolIndex = i;
+                    _toolManager.SetActiveTool(tool);
                 }
 
-                if (i == _activeToolIndex)
+                if (isActive)
                     ImGui.PopStyleColor();
 
                 ImGui.SameLine();
